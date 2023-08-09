@@ -1,0 +1,73 @@
+/****************************************************************************
+    Copyright (C), 2018 HUGE-IC
+
+	文件名： cpu_eflash.mac
+
+	这是eflash调试宏文件。
+
+	脚本的语法：IAR的Help中搜索关键字"__writeMemory32"
+
+	这些函数都是预定义函数，不得修改名称
+*/
+
+/* 复制中断向量表，这个函数再Load完成后执行 */
+execUserReset()
+{
+    #APSR = 0x00000000;
+    #IPSR = 0x00000000;                                       // 退出所有ISR
+    #EPSR = 0x01000000;                                       // 设置T bit
+    __writeMemory32(0x05FA0002, 0xE000ED0C, "Memory");      // 操作AIRCR，退出所有中断
+
+    #PC = __readMemory32(0x08000004, "Memory");             // 设置PC指针
+    #SP = __readMemory32(0x08000000, "Memory");             // 设置堆栈指针
+}
+
+sysctrl_reset() {
+    __writeMemory32(0x3fac87e4, 0x40026058, "Memory");     //key
+    __writeMemory32(0x00000000, 0x4002601C, "Memory");     //SYS_CON1
+    __writeMemory32(0x000000FF, 0x40026020, "Memory");     //SYS_CON2
+    __delay(1);                             
+    __writeMemory32(0x0000001F, 0x4002601C, "Memory");     //SYS_CON1
+    __writeMemory32(0xFFFFFFFF, 0x40026020, "Memory");     //SYS_CON2
+                                            
+    __writeMemory32(0x00000001, 0x40026000, "Memory");     //CLK_CON0
+    __writeMemory32(0x00000000, 0x40026004, "Memory");     //CLK_CON1
+    __writeMemory32(0x00000000, 0x40026008, "Memory");     //CLK_CON2
+    __writeMemory32(0x00000000, 0x4002600C, "Memory");     //CLK_CON3
+    __writeMemory32(0xFFFFFFFF, 0x40026010, "Memory");     //CLK_CON4
+    __writeMemory32(0xFFFFFFFF, 0x40026014, "Memory");     //CLK_CON4
+    __writeMemory32(0x00000001, 0x40026018, "Memory");     //SYS_CON0
+    __writeMemory32(0x00000000, 0x40026024, "Memory");     //SYS_CON3
+    __writeMemory32(0x00000000, 0x40026028, "Memory");     //SYS_CON4
+    __writeMemory32(0x00000000, 0x4002602C, "Memory");     //SYS_CON5
+    __writeMemory32(0x00000000, 0x40026030, "Memory");     //SYS_CON6
+    __writeMemory32(0x00000000, 0x40026034, "Memory");     //SYS_CON7
+    __writeMemory32(0x00000000, 0x40026038, "Memory");     //SYS_CON8
+    __writeMemory32(0x0A05A05A, 0x4002603C, "Memory");     //AIP_CON0
+    __writeMemory32(0x0001D00B, 0x40026040, "Memory");     //AIP_CON1
+    __writeMemory32(0x00000800, 0x40026044, "Memory");     //IO_MAP
+    __writeMemory32(0x00000000, 0x40026048, "Memory");     //IO_MAP1
+   //__writeMemory32(0x0101A3C2, 0x4002604C, "Memory");     //PMUREG0
+   //__writeMemory32(0x00000000, 0x40026050, "Memory");     //PMUREG4
+    __writeMemory32(0x00000000, 0x40026054, "Memory");     //PWM_KEY
+    __writeMemory32(0x00000000, 0x40026058, "Memory");     //SYS_KEY
+    __writeMemory32(0x00000000, 0x4002605C, "Memory");     //DMA_ERR0
+    __writeMemory32(0x00000000, 0x40026060, "Memory");     //DMA_ERR1
+   //__writeMemory32(0x00000000, 0x40026064, "Memory");     //HOSC_MNT
+    __writeMemory32(0x00000000, 0x40026068, "Memory");     //WKUP_CON0
+    __writeMemory32(0x00000000, 0x4002606C, "Memory");     //LP_CON0
+    __writeMemory32(0x00000000, 0x40026070, "Memory");     //MBIST_CON0
+    __writeMemory32(0x00000000, 0x40026074, "Memory");     //MBIST_MISR
+    __writeMemory32(0x00000000, 0x40026078, "Memory");     //SPWM_SOFTRESET
+                                            
+    __writeMemory32(0x00000000, 0x40026058, "Memory");
+}
+
+execUserPreReset()
+{
+    if(((__readMemory32(0x4002607C, "Memory") & 0xFFFF) == 0x5001) ||
+       ((__readMemory32(0x4002607C, "Memory") & 0xFFFF) == 0x5002) ) {
+        sysctrl_reset();
+    }
+}
+

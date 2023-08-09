@@ -1,0 +1,154 @@
+<!--index.wxml-->
+
+<view class='login_block' hidden='{{ login }}'>
+  <view>密码：<input type='text' placeholder="请输入通行密码" bindinput='inputPwd'></input></view>
+  <button type='primary' bindtap='confirmPwd'>确定</button>
+</view>
+
+<!-- hidden='{{ !login }}' -->
+
+<view hidden='{{ !login }}' >
+
+  <!-- <view class='button' bindtap='command_opendoor' hover-class='button_hover' hover-stay-time='2000'>
+    <image src='{{ img_url }}' mode='scaleToFill' class='button_img'></image>
+    <text style='padding-top: 3vh; '>Open The Door</text>
+  </view> -->
+<!-- 头部部分 -->
+<view class="page-container">
+    <view class="head">
+        <image class="headIMG" src="/img/top.png"></image>
+    </view>
+</view>
+  <!-- 数据部分 -->
+<view class="data-contaniner">
+<!-- 温度 -->
+    <view class= "data-card">
+    <image class="data-card_icon" src="/img/temp.png"/>
+    <view>
+        <view class="data-card_title">
+        温度
+        </view>
+        <view class="data-card_value">
+            {{ temperature}} °c
+        </view>
+    </view>
+    </view>
+    <!-- 湿度 -->
+    <view class= "data-card">
+    <image class="data-card_icon" src="/img/hum.png"/>
+    <view>
+        <view class="data-card_title">
+        湿度
+        </view>
+        <view class="data-card_value">
+            {{humidity}} %
+        </view>
+    </view>
+    </view>
+    <!-- 光照度 -->
+    <view class= "data-card">
+    <image class="data-card_icon" src="/img/sun.png"/>
+    <view>
+        <view class="data-card_title">
+        光照
+        </view>
+        <view class="data-card_value">
+        {{GmStatusMSG}}
+        </view>
+    </view>
+    </view>
+    <!-- 人体 -->
+    <view class= "data-card">
+    <image class="data-card_icon" src="/img/human.png"/>
+    <view>
+        <view class="data-card_title">
+        人体
+        </view>
+        <view class="data-card_value">
+          {{RtStatusMSG}}
+        </view>
+    </view>
+    </view>
+    <!-- 雨滴 -->
+    <view class= "data-card">
+    <image class="data-card_icon" src="/img/water.png"/>
+    <view>
+        <view class="data-card_title">
+        雨滴
+        </view>
+        <view class="data-card_value">
+        {{YdStatusMSG}}
+        </view>
+    </view>
+    </view>
+        <!-- MSG -->
+        <view class= "data-card">
+    <!-- <image class="data-card_icon" src="/img/fanH.png"/> -->
+    <view>
+        <view class="data-card_title">
+        发送信息
+        </view>
+        <view class="data-card_msg">
+        <!-- <switch checked="" bindchange="FanChange" color="#3d7ef9"/> -->
+        {{SendMSG}}
+        </view>
+    </view>
+    </view> 
+     <!-- 灯 -->
+     <view class= "data-card">
+    <image class="data-card_icon" src="/img/lightH.png"/>
+    <view>
+        <view class="data-card_title">
+        灯
+        </view>
+        <view class="data-card_value">
+        <switch checked="" bindchange="onLedChange" color="#3d7ef9"/>
+        </view>
+    </view>
+    </view>
+     <!-- 窗帘 -->
+    <view class= "data-card">
+    <image class="data-card_icon" src="/img/motorH.png"/>
+    <view>
+        <view class="data-card_title">
+        窗帘
+        </view>
+        <view class="data-card_value">
+        <switch checked="" bindchange="MotorChange" color="#3d7ef9"/>
+        </view>
+    </view>
+    </view>
+     <!-- 开关门 -->
+    <view class= "data-card">
+    <image class="data-card_icon" src="/img/doorH.png"/>
+    <view>
+        <view class="data-card_title">
+        门
+        </view>
+        <view class="data-card_value">
+        <switch checked="" bindchange="DoorChange" color="#3d7ef9"/>
+        </view>
+    </view>
+    </view>
+    <!-- 风扇 -->
+     <view class= "data-card">
+    <image class="data-card_icon" src="/img/fanH.png"/>
+    <view>
+        <view class="data-card_title">
+        风扇
+        </view>
+        <view class="data-card_value">
+        <switch checked="" bindchange="FanChange" color="#3d7ef9"/>
+        </view>
+    </view>
+    </view>
+       
+</view>
+
+  <view class='status'>
+    <view style='width:5vw;height:5vw;margin:auto 2vw;background-color:{{iot_connect?"#3d7ef9":"red"}}'></view>
+    <view>{{ connect_text }}</view>
+  </view>
+
+</view>
+

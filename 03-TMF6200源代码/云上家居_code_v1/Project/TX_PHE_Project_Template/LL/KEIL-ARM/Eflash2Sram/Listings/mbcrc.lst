@@ -1,0 +1,847 @@
+L 1 "..\..\..\..\Libraries\Protocol\Modbus\Trans_mode\mbcrc.c"
+N/* 
+N * FreeModbus Libary: A portable Modbus implementation for Modbus ASCII/RTU.
+N * Copyright (c) 2006 Christian Walter <wolti@sil.at>
+N * All rights reserved.
+N *
+N * Redistribution and use in source and binary forms, with or without
+N * modification, are permitted provided that the following conditions
+N * are met:
+N * 1. Redistributions of source code must retain the above copyright
+N *    notice, this list of conditions and the following disclaimer.
+N * 2. Redistributions in binary form must reproduce the above copyright
+N *    notice, this list of conditions and the following disclaimer in the
+N *    documentation and/or other materials provided with the distribution.
+N * 3. The name of the author may not be used to endorse or promote products
+N *    derived from this software without specific prior written permission.
+N *
+N * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+N * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+N * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+N * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+N * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+N * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+N * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+N * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+N * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+N * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+N *
+N * File: $Id: mbcrc.c,v 1.7 2007/02/18 23:50:27 wolti Exp $
+N */
+N
+N/* ----------------------- Platform includes --------------------------------*/
+N#include "mbdef.h"
+L 1 "..\..\..\..\Libraries\Protocol\Modbus\include\mbdef.h" 1
+N/*
+N * FreeModbus Libary: BARE Port
+N * Copyright (C) 2006 Christian Walter <wolti@sil.at>
+N *
+N * This library is free software; you can redistribute it and/or
+N * modify it under the terms of the GNU Lesser General Public
+N * License as published by the Free Software Foundation; either
+N * version 2.1 of the License, or (at your option) any later version.
+N *
+N * This library is distributed in the hope that it will be useful,
+N * but WITHOUT ANY WARRANTY; without even the implied warranty of
+N * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+N * Lesser General Public License for more details.
+N *
+N * You should have received a copy of the GNU Lesser General Public
+N * License along with this library; if not, write to the Free Software
+N * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+N *
+N * File: $Id: port.h,v 1.1 2006/08/22 21:35:13 wolti Exp $
+N */
+N
+N#ifndef _PORT_H
+N#define _PORT_H
+N
+N#include <assert.h>
+L 1 "D:\Tools\KIEIL\ARM\ARMCC\Bin\..\include\assert.h" 1
+N/* assert.h: ANSI 'C' (X3J11 Oct 88) library header section 4.2 */
+N/* Copyright (C) Codemist Ltd., 1988-1993                       */
+N/* Copyright 1991-1993 ARM Limited. All rights reserved.        */
+N/* version 0.04 */
+N
+N/*
+N * RCS $Revision$
+N * Checkin $Date$
+N * Revising $Author: drodgman $
+N */
+N
+N/*
+N * The assert macro puts diagnostics into programs. When it is executed,
+N * if its argument expression is false, it writes information about the
+N * call that failed (including the text of the argument, the name of the
+N * source file, and the source line number - the latter are respectively
+N * the values of the preprocessing macros __FILE__ and __LINE__) on the
+N * standard error stream. It then calls the abort function.
+N * If its argument expression is true, the assert macro returns no value.
+N */
+N
+N/*
+N * Note that <assert.h> may be included more that once in a program with
+N * different setting of NDEBUG. Hence the slightly unusual first-time
+N * only flag.
+N */
+N
+N#ifndef __assert_h
+N#   define __assert_h
+N#define _ARMABI_NORETURN __declspec(__nothrow) __declspec(__noreturn)
+N#define __ARMCLIB_VERSION 5060037
+N#   ifndef __ARM_PROMISE
+N#      define __ARM_PROMISE __promise
+N#   endif
+N#   undef __CLIBNS
+N#   ifdef __cplusplus
+S        namespace std {
+S#           define __CLIBNS ::std::
+S            extern "C" {
+N#   else
+N#       define __CLIBNS
+N#   endif  /* __cplusplus */
+N    extern _ARMABI_NORETURN void abort(void);
+X    extern __declspec(__nothrow) __declspec(__noreturn) void abort(void);
+N    extern _ARMABI_NORETURN void __aeabi_assert(const char *, const char *, int) __attribute__((__nonnull__(1,2)));
+X    extern __declspec(__nothrow) __declspec(__noreturn) void __aeabi_assert(const char *, const char *, int) __attribute__((__nonnull__(1,2)));
+N#   ifdef __cplusplus
+S            }  /* extern "C" */
+S        }  /* namespace std */
+N#   endif
+N#else
+S#   undef assert
+S#   undef __promise
+N#endif
+N
+N#ifdef NDEBUG
+S#   define assert(ignore) ((void)0)
+S#   define __promise(e) ((__ARM_PROMISE)((e)?1:0))
+N#else
+N#   if defined __DO_NOT_LINK_PROMISE_WITH_ASSERT
+X#   if 0L
+S#      if defined __OPT_SMALL_ASSERT && !defined __ASSERT_MSG && !defined __STRICT_ANSI__ && !(_AEABI_PORTABILITY_LEVEL != 0 || (!defined _AEABI_PORTABILITY_LEVEL && __DEFAULT_AEABI_PORTABILITY_LEVEL != 0))
+S#          define assert(e) ((e) ? (void)0 : __CLIBNS abort())
+S#      elif defined __STDC__
+S#          define assert(e) ((e) ? (void)0 : __CLIBNS __aeabi_assert(#e, __FILE__, __LINE__))
+S#      else
+S#          define assert(e) ((e) ? (void)0 : __CLIBNS __aeabi_assert("e", __FILE__, __LINE__))
+S#      endif
+S#      define __promise(e) ((__ARM_PROMISE)((e)?1:0))
+N#   else
+N#      if defined __OPT_SMALL_ASSERT && !defined __ASSERT_MSG && !defined __STRICT_ANSI__ && !(_AEABI_PORTABILITY_LEVEL != 0 || (!defined _AEABI_PORTABILITY_LEVEL && __DEFAULT_AEABI_PORTABILITY_LEVEL != 0))
+X#      if 0L && !0L && !0L && !(_AEABI_PORTABILITY_LEVEL != 0 || (!0L && __DEFAULT_AEABI_PORTABILITY_LEVEL != 0))
+S#undef __promise
+S#          define assert(e) ((e) ? (void)0 : __CLIBNS abort(), (__ARM_PROMISE)((e)?1:0))
+N#      else
+N#          define assert(e) ((e) ? (void)0 : __CLIBNS __aeabi_assert(#e, __FILE__, __LINE__), (__ARM_PROMISE)((e)?1:0))
+N#      endif
+N#      define __promise(e) assert(e)
+N#   endif
+N#endif
+N
+N#if _AEABI_PORTABILITY_LEVEL != 0 && !defined _AEABI_PORTABLE
+X#if _AEABI_PORTABILITY_LEVEL != 0 && !0L
+S  #define _AEABI_PORTABLE
+N#endif
+N
+N/* end of assert.h */
+N
+L 26 "..\..\..\..\Libraries\Protocol\Modbus\include\mbdef.h" 2
+N#include <inttypes.h>
+L 1 "D:\Tools\KIEIL\ARM\ARMCC\Bin\..\include\inttypes.h" 1
+N/* Copyright (C) ARM Ltd., 1999,2014 */
+N/* All rights reserved */
+N
+N/*
+N * RCS $Revision$
+N * Checkin $Date$
+N * Revising $Author: agrant $
+N */
+N
+N/* Based on WG14/N843 (C9X) Committee Draft August 3, 1998 */
+N
+N#ifndef __inttypes_h
+N#define __inttypes_h
+N#define __ARMCLIB_VERSION 5060037
+N
+N#define _ARMABI __declspec(__nothrow)
+N#define _ARMABI_PURE __declspec(__nothrow) __attribute__((const))
+N
+N#include <stdint.h>
+L 1 "D:\Tools\KIEIL\ARM\ARMCC\Bin\..\include\stdint.h" 1
+N/* Copyright (C) ARM Ltd., 1999,2014 */
+N/* All rights reserved */
+N
+N/*
+N * RCS $Revision$
+N * Checkin $Date$
+N * Revising $Author: agrant $
+N */
+N
+N#ifndef __stdint_h
+N#define __stdint_h
+N#define __ARMCLIB_VERSION 5060037
+N
+N  #ifdef __INT64_TYPE__
+S    /* armclang predefines '__INT64_TYPE__' and '__INT64_C_SUFFIX__' */
+S    #define __INT64 __INT64_TYPE__
+N  #else
+N    /* armcc has builtin '__int64' which can be used in --strict mode */
+N    #define __INT64 __int64
+N    #define __INT64_C_SUFFIX__ ll
+N  #endif
+N  #define __PASTE2(x, y) x ## y
+N  #define __PASTE(x, y) __PASTE2(x, y)
+N  #define __INT64_C(x)  __ESCAPE__(__PASTE(x, __INT64_C_SUFFIX__))
+N  #define __UINT64_C(x)  __ESCAPE__(__PASTE(x ## u, __INT64_C_SUFFIX__))
+N  #if defined(__clang__) || (defined(__ARMCC_VERSION) && !defined(__STRICT_ANSI__))
+X  #if 0L || (1L && !0L)
+N    /* armclang and non-strict armcc allow 'long long' in system headers */
+N    #define __LONGLONG long long
+N  #else
+S    /* strict armcc has '__int64' */
+S    #define __LONGLONG __int64
+N  #endif
+N
+N  #ifndef __STDINT_DECLS
+N  #define __STDINT_DECLS
+N
+N    #undef __CLIBNS
+N
+N    #ifdef __cplusplus
+S      namespace std {
+S          #define __CLIBNS std::
+S          extern "C" {
+N    #else
+N      #define __CLIBNS
+N    #endif  /* __cplusplus */
+N
+N
+N/*
+N * 'signed' is redundant below, except for 'signed char' and if
+N * the typedef is used to declare a bitfield.
+N */
+N
+N    /* 7.18.1.1 */
+N
+N    /* exact-width signed integer types */
+Ntypedef   signed          char int8_t;
+Ntypedef   signed short     int int16_t;
+Ntypedef   signed           int int32_t;
+Ntypedef   signed       __INT64 int64_t;
+Xtypedef   signed       __int64 int64_t;
+N
+N    /* exact-width unsigned integer types */
+Ntypedef unsigned          char uint8_t;
+Ntypedef unsigned short     int uint16_t;
+Ntypedef unsigned           int uint32_t;
+Ntypedef unsigned       __INT64 uint64_t;
+Xtypedef unsigned       __int64 uint64_t;
+N
+N    /* 7.18.1.2 */
+N
+N    /* smallest type of at least n bits */
+N    /* minimum-width signed integer types */
+Ntypedef   signed          char int_least8_t;
+Ntypedef   signed short     int int_least16_t;
+Ntypedef   signed           int int_least32_t;
+Ntypedef   signed       __INT64 int_least64_t;
+Xtypedef   signed       __int64 int_least64_t;
+N
+N    /* minimum-width unsigned integer types */
+Ntypedef unsigned          char uint_least8_t;
+Ntypedef unsigned short     int uint_least16_t;
+Ntypedef unsigned           int uint_least32_t;
+Ntypedef unsigned       __INT64 uint_least64_t;
+Xtypedef unsigned       __int64 uint_least64_t;
+N
+N    /* 7.18.1.3 */
+N
+N    /* fastest minimum-width signed integer types */
+Ntypedef   signed           int int_fast8_t;
+Ntypedef   signed           int int_fast16_t;
+Ntypedef   signed           int int_fast32_t;
+Ntypedef   signed       __INT64 int_fast64_t;
+Xtypedef   signed       __int64 int_fast64_t;
+N
+N    /* fastest minimum-width unsigned integer types */
+Ntypedef unsigned           int uint_fast8_t;
+Ntypedef unsigned           int uint_fast16_t;
+Ntypedef unsigned           int uint_fast32_t;
+Ntypedef unsigned       __INT64 uint_fast64_t;
+Xtypedef unsigned       __int64 uint_fast64_t;
+N
+N    /* 7.18.1.4 integer types capable of holding object pointers */
+N#if __sizeof_ptr == 8
+X#if 4 == 8
+Stypedef   signed       __INT64 intptr_t;
+Stypedef unsigned       __INT64 uintptr_t;
+N#else
+Ntypedef   signed           int intptr_t;
+Ntypedef unsigned           int uintptr_t;
+N#endif
+N
+N    /* 7.18.1.5 greatest-width integer types */
+Ntypedef   signed     __LONGLONG intmax_t;
+Xtypedef   signed     long long intmax_t;
+Ntypedef unsigned     __LONGLONG uintmax_t;
+Xtypedef unsigned     long long uintmax_t;
+N
+N
+N#if !defined(__cplusplus) || defined(__STDC_LIMIT_MACROS)
+X#if !0L || 0L
+N
+N    /* 7.18.2.1 */
+N
+N    /* minimum values of exact-width signed integer types */
+N#define INT8_MIN                   -128
+N#define INT16_MIN                -32768
+N#define INT32_MIN          (~0x7fffffff)   /* -2147483648 is unsigned */
+N#define INT64_MIN  __INT64_C(~0x7fffffffffffffff) /* -9223372036854775808 is unsigned */
+N
+N    /* maximum values of exact-width signed integer types */
+N#define INT8_MAX                    127
+N#define INT16_MAX                 32767
+N#define INT32_MAX            2147483647
+N#define INT64_MAX  __INT64_C(9223372036854775807)
+N
+N    /* maximum values of exact-width unsigned integer types */
+N#define UINT8_MAX                   255
+N#define UINT16_MAX                65535
+N#define UINT32_MAX           4294967295u
+N#define UINT64_MAX __UINT64_C(18446744073709551615)
+N
+N    /* 7.18.2.2 */
+N
+N    /* minimum values of minimum-width signed integer types */
+N#define INT_LEAST8_MIN                   -128
+N#define INT_LEAST16_MIN                -32768
+N#define INT_LEAST32_MIN          (~0x7fffffff)
+N#define INT_LEAST64_MIN  __INT64_C(~0x7fffffffffffffff)
+N
+N    /* maximum values of minimum-width signed integer types */
+N#define INT_LEAST8_MAX                    127
+N#define INT_LEAST16_MAX                 32767
+N#define INT_LEAST32_MAX            2147483647
+N#define INT_LEAST64_MAX  __INT64_C(9223372036854775807)
+N
+N    /* maximum values of minimum-width unsigned integer types */
+N#define UINT_LEAST8_MAX                   255
+N#define UINT_LEAST16_MAX                65535
+N#define UINT_LEAST32_MAX           4294967295u
+N#define UINT_LEAST64_MAX __UINT64_C(18446744073709551615)
+N
+N    /* 7.18.2.3 */
+N
+N    /* minimum values of fastest minimum-width signed integer types */
+N#define INT_FAST8_MIN           (~0x7fffffff)
+N#define INT_FAST16_MIN          (~0x7fffffff)
+N#define INT_FAST32_MIN          (~0x7fffffff)
+N#define INT_FAST64_MIN  __INT64_C(~0x7fffffffffffffff)
+N
+N    /* maximum values of fastest minimum-width signed integer types */
+N#define INT_FAST8_MAX             2147483647
+N#define INT_FAST16_MAX            2147483647
+N#define INT_FAST32_MAX            2147483647
+N#define INT_FAST64_MAX  __INT64_C(9223372036854775807)
+N
+N    /* maximum values of fastest minimum-width unsigned integer types */
+N#define UINT_FAST8_MAX            4294967295u
+N#define UINT_FAST16_MAX           4294967295u
+N#define UINT_FAST32_MAX           4294967295u
+N#define UINT_FAST64_MAX __UINT64_C(18446744073709551615)
+N
+N    /* 7.18.2.4 */
+N
+N    /* minimum value of pointer-holding signed integer type */
+N#if __sizeof_ptr == 8
+X#if 4 == 8
+S#define INTPTR_MIN INT64_MIN
+N#else
+N#define INTPTR_MIN INT32_MIN
+N#endif
+N
+N    /* maximum value of pointer-holding signed integer type */
+N#if __sizeof_ptr == 8
+X#if 4 == 8
+S#define INTPTR_MAX INT64_MAX
+N#else
+N#define INTPTR_MAX INT32_MAX
+N#endif
+N
+N    /* maximum value of pointer-holding unsigned integer type */
+N#if __sizeof_ptr == 8
+X#if 4 == 8
+S#define UINTPTR_MAX UINT64_MAX
+N#else
+N#define UINTPTR_MAX UINT32_MAX
+N#endif
+N
+N    /* 7.18.2.5 */
+N
+N    /* minimum value of greatest-width signed integer type */
+N#define INTMAX_MIN  __ESCAPE__(~0x7fffffffffffffffll)
+N
+N    /* maximum value of greatest-width signed integer type */
+N#define INTMAX_MAX  __ESCAPE__(9223372036854775807ll)
+N
+N    /* maximum value of greatest-width unsigned integer type */
+N#define UINTMAX_MAX __ESCAPE__(18446744073709551615ull)
+N
+N    /* 7.18.3 */
+N
+N    /* limits of ptrdiff_t */
+N#if __sizeof_ptr == 8
+X#if 4 == 8
+S#define PTRDIFF_MIN INT64_MIN
+S#define PTRDIFF_MAX INT64_MAX
+N#else
+N#define PTRDIFF_MIN INT32_MIN
+N#define PTRDIFF_MAX INT32_MAX
+N#endif
+N
+N    /* limits of sig_atomic_t */
+N#define SIG_ATOMIC_MIN (~0x7fffffff)
+N#define SIG_ATOMIC_MAX   2147483647
+N
+N    /* limit of size_t */
+N#if __sizeof_ptr == 8
+X#if 4 == 8
+S#define SIZE_MAX UINT64_MAX
+N#else
+N#define SIZE_MAX UINT32_MAX
+N#endif
+N
+N    /* limits of wchar_t */
+N    /* NB we have to undef and redef because they're defined in both
+N     * stdint.h and wchar.h */
+N#undef WCHAR_MIN
+N#undef WCHAR_MAX
+N
+N#if defined(__WCHAR32) || (defined(__ARM_SIZEOF_WCHAR_T) && __ARM_SIZEOF_WCHAR_T == 4)
+X#if 0L || (0L && __ARM_SIZEOF_WCHAR_T == 4)
+S  #define WCHAR_MIN   0
+S  #define WCHAR_MAX   0xffffffffU
+N#else
+N  #define WCHAR_MIN   0
+N  #define WCHAR_MAX   65535
+N#endif
+N
+N    /* limits of wint_t */
+N#define WINT_MIN (~0x7fffffff)
+N#define WINT_MAX 2147483647
+N
+N#endif /* __STDC_LIMIT_MACROS */
+N
+N#if !defined(__cplusplus) || defined(__STDC_CONSTANT_MACROS)
+X#if !0L || 0L
+N
+N    /* 7.18.4.1 macros for minimum-width integer constants */
+N#define INT8_C(x)   (x)
+N#define INT16_C(x)  (x)
+N#define INT32_C(x)  (x)
+N#define INT64_C(x)  __INT64_C(x)
+N
+N#define UINT8_C(x)  (x ## u)
+N#define UINT16_C(x) (x ## u)
+N#define UINT32_C(x) (x ## u)
+N#define UINT64_C(x) __UINT64_C(x)
+N
+N    /* 7.18.4.2 macros for greatest-width integer constants */
+N#define INTMAX_C(x)  __ESCAPE__(x ## ll)
+N#define UINTMAX_C(x) __ESCAPE__(x ## ull)
+N
+N#endif /* __STDC_CONSTANT_MACROS */
+N
+N    #ifdef __cplusplus
+S         }  /* extern "C" */
+S      }  /* namespace std */
+N    #endif /* __cplusplus */
+N  #endif /* __STDINT_DECLS */
+N
+N  #ifdef __cplusplus
+S    #ifndef __STDINT_NO_EXPORTS
+S      using ::std::int8_t;
+S      using ::std::int16_t;
+S      using ::std::int32_t;
+S      using ::std::int64_t;
+S      using ::std::uint8_t;
+S      using ::std::uint16_t;
+S      using ::std::uint32_t;
+S      using ::std::uint64_t;
+S      using ::std::int_least8_t;
+S      using ::std::int_least16_t;
+S      using ::std::int_least32_t;
+S      using ::std::int_least64_t;
+S      using ::std::uint_least8_t;
+S      using ::std::uint_least16_t;
+S      using ::std::uint_least32_t;
+S      using ::std::uint_least64_t;
+S      using ::std::int_fast8_t;
+S      using ::std::int_fast16_t;
+S      using ::std::int_fast32_t;
+S      using ::std::int_fast64_t;
+S      using ::std::uint_fast8_t;
+S      using ::std::uint_fast16_t;
+S      using ::std::uint_fast32_t;
+S      using ::std::uint_fast64_t;
+S      using ::std::intptr_t;
+S      using ::std::uintptr_t;
+S      using ::std::intmax_t;
+S      using ::std::uintmax_t;
+S    #endif
+N  #endif /* __cplusplus */
+N
+N#undef __INT64
+N#undef __LONGLONG
+N
+N#endif /* __stdint_h */
+N
+N/* end of stdint.h */
+L 20 "D:\Tools\KIEIL\ARM\ARMCC\Bin\..\include\inttypes.h" 2
+N
+N#if !defined(__cplusplus) || defined(__STDC_FORMAT_MACROS) || 201103L <= __cplusplus
+X#if !0L || 0L || 201103L <= __cplusplus
+N
+N#ifdef __LP64__
+S  #define __PRISCN64 "l" /* 'int64_t' is 'long' */
+N#else
+N  #define __PRISCN64 "ll" /* 'int64_t' is 'long long' */
+N#endif
+N#if __sizeof_ptr == 8
+X#if 4 == 8
+S  #define __PRISCNPTR __PRISCN64 /* 'intptr_t' is 64-bits */
+N#else
+N  #define __PRISCNPTR /*nothing*/ /* 'intptr_t' is 'int' */
+N#endif
+N
+N
+N    /* 7.8.1 */
+N
+N#define PRId8         "d"
+N#define PRId16        "d"
+N#define PRId32        "d"
+N#define PRId64      __PRISCN64 "d"
+N#define PRIdLEAST8    "d"
+N#define PRIdLEAST16   "d"
+N#define PRIdLEAST32   "d"
+N#define PRIdLEAST64 __PRISCN64 "d"
+N#define PRIdFAST8     "d"
+N#define PRIdFAST16    "d"
+N#define PRIdFAST32    "d"
+N#define PRIdFAST64  __PRISCN64 "d"
+N#define PRIdMAX      "jd"
+N#define PRIdPTR     __PRISCNPTR "d"
+N
+N#define PRIi8         "i"
+N#define PRIi16        "i"
+N#define PRIi32        "i"
+N#define PRIi64      __PRISCN64 "i"
+N#define PRIiLEAST8    "i"
+N#define PRIiLEAST16   "i"
+N#define PRIiLEAST32   "i"
+N#define PRIiLEAST64 __PRISCN64 "i"
+N#define PRIiFAST8     "i"
+N#define PRIiFAST16    "i"
+N#define PRIiFAST32    "i"
+N#define PRIiFAST64  __PRISCN64 "i"
+N#define PRIiMAX      "ji"
+N#define PRIiPTR     __PRISCNPTR "i"
+N
+N#define PRIo8         "o"
+N#define PRIo16        "o"
+N#define PRIo32        "o"
+N#define PRIo64      __PRISCN64 "o"
+N#define PRIoLEAST8    "o"
+N#define PRIoLEAST16   "o"
+N#define PRIoLEAST32   "o"
+N#define PRIoLEAST64 __PRISCN64 "o"
+N#define PRIoFAST8     "o"
+N#define PRIoFAST16    "o"
+N#define PRIoFAST32    "o"
+N#define PRIoFAST64  __PRISCN64 "o"
+N#define PRIoMAX      "jo"
+N#define PRIoPTR     __PRISCNPTR "o"
+N
+N#define PRIu8         "d"
+N#define PRIu16        "d"
+N#define PRIu32        "u"
+N#define PRIu64      __PRISCN64 "u"
+N#define PRIuLEAST8    "d"
+N#define PRIuLEAST16   "d"
+N#define PRIuLEAST32   "u"
+N#define PRIuLEAST64 __PRISCN64 "u"
+N#define PRIuFAST8     "u"
+N#define PRIuFAST16    "u"
+N#define PRIuFAST32    "u"
+N#define PRIuFAST64  __PRISCN64 "u"
+N#define PRIuMAX      "ju"
+N#define PRIuPTR     __PRISCNPTR "u"
+N
+N#define PRIx8         "x"
+N#define PRIx16        "x"
+N#define PRIx32        "x"
+N#define PRIx64      __PRISCN64 "x"
+N#define PRIxLEAST8    "x"
+N#define PRIxLEAST16   "x"
+N#define PRIxLEAST32   "x"
+N#define PRIxLEAST64 __PRISCN64 "x"
+N#define PRIxFAST8     "x"
+N#define PRIxFAST16    "x"
+N#define PRIxFAST32    "x"
+N#define PRIxFAST64  __PRISCN64 "x"
+N#define PRIxMAX      "jx"
+N#define PRIxPTR     __PRISCNPTR "x"
+N
+N#define PRIX8         "X"
+N#define PRIX16        "X"
+N#define PRIX32        "X"
+N#define PRIX64      __PRISCN64 "X"
+N#define PRIXLEAST8    "X"
+N#define PRIXLEAST16   "X"
+N#define PRIXLEAST32   "X"
+N#define PRIXLEAST64 __PRISCN64 "X"
+N#define PRIXFAST8     "X"
+N#define PRIXFAST16    "X"
+N#define PRIXFAST32    "X"
+N#define PRIXFAST64  __PRISCN64 "X"
+N#define PRIXMAX      "jX"
+N#define PRIXPTR     __PRISCNPTR "X"
+N
+N#define SCNd8       "hhd"
+N#define SCNd16       "hd"
+N#define SCNd32        "d"
+N#define SCNd64      __PRISCN64 "d"
+N#define SCNdLEAST8  "hhd"
+N#define SCNdLEAST16  "hd"
+N#define SCNdLEAST32   "d"
+N#define SCNdLEAST64 __PRISCN64 "d"
+N#define SCNdFAST8     "d"
+N#define SCNdFAST16    "d"
+N#define SCNdFAST32    "d"
+N#define SCNdFAST64  __PRISCN64 "d"
+N#define SCNdMAX      "jd"
+N#define SCNdPTR     __PRISCNPTR "d"
+N
+N#define SCNi8       "hhd"
+N#define SCNi16       "hi"
+N#define SCNi32        "i"
+N#define SCNi64      __PRISCN64 "i"
+N#define SCNiLEAST8  "hhi"
+N#define SCNiLEAST16  "hi"
+N#define SCNiLEAST32   "i"
+N#define SCNiLEAST64 __PRISCN64 "i"
+N#define SCNiFAST8     "i"
+N#define SCNiFAST16    "i"
+N#define SCNiFAST32    "i"
+N#define SCNiFAST64  __PRISCN64 "i"
+N#define SCNiMAX      "ji"
+N#define SCNiPTR     __PRISCNPTR "i"
+N
+N#define SCNo8       "hho"
+N#define SCNo16       "ho"
+N#define SCNo32        "o"
+N#define SCNo64      __PRISCN64 "o"
+N#define SCNoLEAST8  "hho"
+N#define SCNoLEAST16  "ho"
+N#define SCNoLEAST32   "o"
+N#define SCNoLEAST64 __PRISCN64 "o"
+N#define SCNoFAST8     "o"
+N#define SCNoFAST16    "o"
+N#define SCNoFAST32    "o"
+N#define SCNoFAST64  __PRISCN64 "o"
+N#define SCNoMAX      "jo"
+N#define SCNoPTR     __PRISCNPTR "o"
+N
+N#define SCNu8       "hhu"
+N#define SCNu16       "hu"
+N#define SCNu32        "u"
+N#define SCNu64      __PRISCN64 "u"
+N#define SCNuLEAST8  "hhu"
+N#define SCNuLEAST16  "hu"
+N#define SCNuLEAST32   "u"
+N#define SCNuLEAST64 __PRISCN64 "u"
+N#define SCNuFAST8     "u"
+N#define SCNuFAST16    "u"
+N#define SCNuFAST32    "u"
+N#define SCNuFAST64  __PRISCN64 "u"
+N#define SCNuMAX      "ju"
+N#define SCNuPTR     __PRISCNPTR "u"
+N
+N#define SCNx8       "hhx"
+N#define SCNx16       "hx"
+N#define SCNx32        "x"
+N#define SCNx64      __PRISCN64 "x"
+N#define SCNxLEAST8  "hhx"
+N#define SCNxLEAST16  "hx"
+N#define SCNxLEAST32   "x"
+N#define SCNxLEAST64 __PRISCN64 "x"
+N#define SCNxFAST8     "x"
+N#define SCNxFAST16    "x"
+N#define SCNxFAST32    "x"
+N#define SCNxFAST64  __PRISCN64 "x"
+N#define SCNxMAX      "jx"
+N#define SCNxPTR     __PRISCNPTR "x"
+N
+N#endif /* __STDC_FORMAT_MACROS */
+N
+N#ifndef __cplusplus  /* wchar_t is a builtin type for C++ */
+N  #if !defined(__STRICT_ANSI__)
+X  #if !0L
+N   /* unconditional in non-strict C for consistency of debug info */
+N    #if defined(__WCHAR32) || (defined(__ARM_SIZEOF_WCHAR_T) && __ARM_SIZEOF_WCHAR_T == 4)
+X    #if 0L || (0L && __ARM_SIZEOF_WCHAR_T == 4)
+S      typedef unsigned int wchar_t; /* see <stddef.h> */
+N    #else
+N      typedef unsigned short wchar_t; /* see <stddef.h> */
+N    #endif
+N  #elif !defined(__wchar_t)
+S    #define __wchar_t 1
+S    #if defined(__WCHAR32) || (defined(__ARM_SIZEOF_WCHAR_T) && __ARM_SIZEOF_WCHAR_T == 4)
+S      typedef unsigned int wchar_t; /* see <stddef.h> */
+S    #else
+S      typedef unsigned short wchar_t; /* see <stddef.h> */
+S    #endif
+N  #endif
+N#endif
+N
+Ntypedef struct imaxdiv_t { intmax_t quot, rem; } imaxdiv_t;
+N   /* type of the value returned by the imaxdiv function. */
+N
+N#ifdef __cplusplus
+Sextern "C" {
+N#endif
+N
+N_ARMABI intmax_t strtoimax(const char * __restrict /*nptr*/,
+X__declspec(__nothrow) intmax_t strtoimax(const char * __restrict  ,
+N                   char ** __restrict /*endptr*/, int /*base*/) __attribute__((__nonnull__(1)));
+N    /* as for strtol */
+N_ARMABI uintmax_t strtoumax(const char * __restrict /*nptr*/,
+X__declspec(__nothrow) uintmax_t strtoumax(const char * __restrict  ,
+N                    char ** __restrict /*endptr*/, int /*base*/) __attribute__((__nonnull__(1)));
+N    /* as for strtoul */
+N
+N_ARMABI intmax_t wcstoimax(const wchar_t * __restrict /*nptr*/,
+X__declspec(__nothrow) intmax_t wcstoimax(const wchar_t * __restrict  ,
+N                   wchar_t ** __restrict /*endptr*/, int /*base*/) __attribute__((__nonnull__(1)));
+N_ARMABI uintmax_t wcstoumax(const wchar_t * __restrict /*nptr*/,
+X__declspec(__nothrow) uintmax_t wcstoumax(const wchar_t * __restrict  ,
+N                    wchar_t ** __restrict /*endptr*/, int /*base*/) __attribute__((__nonnull__(1)));
+N
+Nextern _ARMABI_PURE intmax_t imaxabs(intmax_t /*j*/);
+Xextern __declspec(__nothrow) __attribute__((const)) intmax_t imaxabs(intmax_t  );
+N   /*
+N    * computes the absolute value of an intmax_t j. If the result cannot be
+N    * represented, the behaviour is undefined.
+N    * Returns: the absolute value.
+N    */
+Nextern _ARMABI_PURE imaxdiv_t imaxdiv(intmax_t /*numer*/, intmax_t /*denom*/);
+Xextern __declspec(__nothrow) __attribute__((const)) imaxdiv_t imaxdiv(intmax_t  , intmax_t  );
+N   /*
+N    * computes the quotient and remainder of the division of the numerator
+N    * numer by the denominator denom. If the division is inexact, the sign of
+N    * the resulting quotient is that of the algebraic quotient, and the
+N    * magnitude of the resulting quotient is the largest integer less than the
+N    * magnitude of the algebraic quotient. If the result cannot be represented,
+N    * the behaviour is undefined; otherwise, quot * denom + rem shall equal
+N    * numer.
+N    * Returns: a structure of type imaxdiv_t, comprising both the quotient and
+N    *          the remainder. the structure shall contain the following
+N    *          members, in either order.
+N    *          intmax_t quot; intmax_t rem;
+N    */
+N
+N#ifdef __cplusplus
+S}
+N#endif
+N
+N#endif /* __inttypes_h */
+N
+N/* end of inttypes.h */
+N
+L 27 "..\..\..\..\Libraries\Protocol\Modbus\include\mbdef.h" 2
+N
+N#define	INLINE                      inline
+N#define PR_BEGIN_EXTERN_C           extern "C" {
+N#define	PR_END_EXTERN_C             }
+N
+N#define ENTER_CRITICAL_SECTION( )   
+N#define EXIT_CRITICAL_SECTION( )    
+N
+Ntypedef unsigned char UCHAR;
+Ntypedef char CHAR;
+N
+Ntypedef uint16_t USHORT;
+Ntypedef int16_t SHORT;
+N
+Ntypedef uint32_t ULONG;
+Ntypedef int32_t LONG;
+N
+N#endif
+L 33 "..\..\..\..\Libraries\Protocol\Modbus\Trans_mode\mbcrc.c" 2
+N
+Nstatic const UCHAR aucCRCHi[] = {
+N    0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41,
+N    0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
+N    0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41,
+N    0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
+N    0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41,
+N    0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
+N    0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
+N    0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
+N    0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41,
+N    0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
+N    0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41,
+N    0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 
+N    0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41,
+N    0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 
+N    0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
+N    0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
+N    0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 
+N    0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
+N    0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41,
+N    0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
+N    0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41,
+N    0x00, 0xC1, 0x81, 0x40
+N};
+N
+Nstatic const UCHAR aucCRCLo[] = {
+N    0x00, 0xC0, 0xC1, 0x01, 0xC3, 0x03, 0x02, 0xC2, 0xC6, 0x06, 0x07, 0xC7,
+N    0x05, 0xC5, 0xC4, 0x04, 0xCC, 0x0C, 0x0D, 0xCD, 0x0F, 0xCF, 0xCE, 0x0E,
+N    0x0A, 0xCA, 0xCB, 0x0B, 0xC9, 0x09, 0x08, 0xC8, 0xD8, 0x18, 0x19, 0xD9,
+N    0x1B, 0xDB, 0xDA, 0x1A, 0x1E, 0xDE, 0xDF, 0x1F, 0xDD, 0x1D, 0x1C, 0xDC,
+N    0x14, 0xD4, 0xD5, 0x15, 0xD7, 0x17, 0x16, 0xD6, 0xD2, 0x12, 0x13, 0xD3,
+N    0x11, 0xD1, 0xD0, 0x10, 0xF0, 0x30, 0x31, 0xF1, 0x33, 0xF3, 0xF2, 0x32,
+N    0x36, 0xF6, 0xF7, 0x37, 0xF5, 0x35, 0x34, 0xF4, 0x3C, 0xFC, 0xFD, 0x3D,
+N    0xFF, 0x3F, 0x3E, 0xFE, 0xFA, 0x3A, 0x3B, 0xFB, 0x39, 0xF9, 0xF8, 0x38, 
+N    0x28, 0xE8, 0xE9, 0x29, 0xEB, 0x2B, 0x2A, 0xEA, 0xEE, 0x2E, 0x2F, 0xEF,
+N    0x2D, 0xED, 0xEC, 0x2C, 0xE4, 0x24, 0x25, 0xE5, 0x27, 0xE7, 0xE6, 0x26,
+N    0x22, 0xE2, 0xE3, 0x23, 0xE1, 0x21, 0x20, 0xE0, 0xA0, 0x60, 0x61, 0xA1,
+N    0x63, 0xA3, 0xA2, 0x62, 0x66, 0xA6, 0xA7, 0x67, 0xA5, 0x65, 0x64, 0xA4,
+N    0x6C, 0xAC, 0xAD, 0x6D, 0xAF, 0x6F, 0x6E, 0xAE, 0xAA, 0x6A, 0x6B, 0xAB, 
+N    0x69, 0xA9, 0xA8, 0x68, 0x78, 0xB8, 0xB9, 0x79, 0xBB, 0x7B, 0x7A, 0xBA,
+N    0xBE, 0x7E, 0x7F, 0xBF, 0x7D, 0xBD, 0xBC, 0x7C, 0xB4, 0x74, 0x75, 0xB5,
+N    0x77, 0xB7, 0xB6, 0x76, 0x72, 0xB2, 0xB3, 0x73, 0xB1, 0x71, 0x70, 0xB0,
+N    0x50, 0x90, 0x91, 0x51, 0x93, 0x53, 0x52, 0x92, 0x96, 0x56, 0x57, 0x97,
+N    0x55, 0x95, 0x94, 0x54, 0x9C, 0x5C, 0x5D, 0x9D, 0x5F, 0x9F, 0x9E, 0x5E,
+N    0x5A, 0x9A, 0x9B, 0x5B, 0x99, 0x59, 0x58, 0x98, 0x88, 0x48, 0x49, 0x89,
+N    0x4B, 0x8B, 0x8A, 0x4A, 0x4E, 0x8E, 0x8F, 0x4F, 0x8D, 0x4D, 0x4C, 0x8C,
+N    0x44, 0x84, 0x85, 0x45, 0x87, 0x47, 0x46, 0x86, 0x82, 0x42, 0x43, 0x83,
+N    0x41, 0x81, 0x80, 0x40
+N};
+N
+NUSHORT
+NusMBCRC16( UCHAR * pucFrame, USHORT usLen )
+N{
+N    UCHAR           ucCRCHi = 0xFF;
+N    UCHAR           ucCRCLo = 0xFF;
+N    int             iIndex;
+N
+N    while( usLen-- )
+N    {
+N        iIndex = ucCRCLo ^ *( pucFrame++ );
+N        ucCRCLo = ( UCHAR )( ucCRCHi ^ aucCRCHi[iIndex] );
+N        ucCRCHi = aucCRCLo[iIndex];
+N    }
+N    return ( USHORT )( ucCRCHi << 8 | ucCRCLo );
+N}

@@ -1,0 +1,139 @@
+/**index.wxss**/
+.page-container{
+    padding: 36rpx;
+}
+page{
+  background-color: rgb(250, 250, 250);
+}
+
+.login_block{
+  position: absolute;
+  left: 0;right: 0;top: 0;bottom: 0;
+  display:flex;
+  justify-content: center;
+  flex-direction: column;
+
+  width: 80vw;
+  height: 30vh;
+  background-color: white;
+  margin: auto;
+  padding: 0 3vh;
+  border: 1px solid rgb(202, 201, 201);
+  border-radius: 20px;
+}
+
+
+
+.button-container{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+.button{
+    background-color: white;
+    border: 1px solid gray;
+    border-radius: 100%;
+    width: 20vw;
+    height: 20vw;
+    text-align: center;
+    margin: 10px;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 30px rgb(170, 170, 170);
+  }
+
+.button_hover{
+  border: 2px solid rgb(0, 183, 255);
+}
+
+
+.button_img{
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+}
+
+.status{
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  flex-direction: inherit;
+  border-top: 1px solid gainsboro;
+  background-color: white;
+  width: 100%;
+  text-align: center;
+  bottom: 0;
+  color: slategray;
+}
+
+.showdata{
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    flex-direction: inherit;
+    border-top: 1px solid gainsboro;
+    background-color: white;
+    width: 100%;
+    text-align: center;
+    bottom: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    color: slategray;
+  }
+  .head{
+    display: flex;
+    justify-content: space-between;
+    border-radius:25rpx;
+    justify-content: center;
+    background-color: rgb(255, 255, 255);
+    
+}
+.head .headIMG{
+    display: flex;
+    justify-content: space-between;
+    border-radius:25rpx;
+    justify-content: center;
+    height: 330rpx;
+    width: 650rpx;
+    
+}
+.data-contaniner{
+    background-color: rgb(255, 255, 255);
+    margin-top: 10rpx;
+    display: grid;
+    justify-content: center;
+    grid-template-columns: repeat(auto-fill,300rpx);
+    grid-gap: 36rpx;
+}
+
+.data-contaniner .data-card{
+    background-color: #ffffff;
+    height:70px;
+    box-shadow: #d6d6d6 0 0 8rpx;
+    border-radius:25rpx;
+    display: flex;
+    justify-content:space-between ;
+    padding: 16rpx 30rpx;
+}
+.data-contaniner .data-card .data-card_icon{
+    height: 100rpx;
+    width: 100rpx;
+}
+.data-contaniner .data-card .data-card_value{
+    font-size: 52rpx;
+    font-weight:bold ;
+    color: #7f7f7f;
+}
+.data-contaniner .data-card .data-card_msg{
+    font-size: 30rpx;
+    font-weight:lighter ;
+    color: #7f7f7f;
+}
+.data-contaniner .data-card .data-card_title{
+    font-size: 25rpx;
+    color: #7f7f7f;
+
+
+}
